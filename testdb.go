@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// TestDatabase contains some helper methods to handle a test database.
 type TestDatabase struct {
 	dbName string
 	db     *sql.DB

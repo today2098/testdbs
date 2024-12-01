@@ -12,6 +12,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+// Handler contains some helper methods to create and drop test databases.
 type Handler struct {
 	cfg       *mysql.Config
 	db        *sql.DB
@@ -32,53 +33,53 @@ func NewHandler(cfg *mysql.Config, sourceUrl string, prefix string) *Handler {
 }
 
 // Connect connects to a database and verify with a ping.
-func (tdh *Handler) Connect() error {
+func (h *Handler) Connect() error {
 	var err error
-	if tdh.db, err = sql.Open("mysql", tdh.cfg.FormatDSN()); err != nil {
+	if h.db, err = sql.Open("mysql", h.cfg.FormatDSN()); err != nil {
 		return err
 	}
-	return tdh.db.Ping()
+	return h.db.Ping()
 }
 
 // Create creates a new test DB and returns a *TestDatabase.
-func (tdh *Handler) Create() (*TestDatabase, error) {
+func (h *Handler) Create() (*TestDatabase, error) {
 	var err error
 
 	// create a new test DB
-	dbName := tdh.prefix + "_" + ulid.Make().String()
-	if _, err := tdh.db.Exec("CREATE DATABASE " + dbName); err != nil {
+	dbName := h.prefix + "_" + ulid.Make().String()
+	if _, err := h.db.Exec("CREATE DATABASE " + dbName); err != nil {
 		return nil, err
 	}
 
 	// create a new *TestDatabase
 	child := &TestDatabase{
 		dbName: dbName,
-		par:    tdh,
+		par:    h,
 	}
-	tdh.children.Store(child, struct{}{})
+	h.children.Store(child, struct{}{})
 
 	// connect to a new test DB
-	cfg := *tdh.cfg
+	cfg := *h.cfg
 	cfg.DBName = dbName
 	cfg.MultiStatements = true // !
 	if child.db, err = sql.Open("mysql", cfg.FormatDSN()); err != nil {
-		tdh.Drop(child)
+		h.Drop(child)
 		return nil, err
 	}
 
 	// migration
 	driver, err := mmy.WithInstance(child.db, &mmy.Config{})
 	if err != nil {
-		tdh.Drop(child)
+		h.Drop(child)
 		return nil, err
 	}
-	m, err := migrate.NewWithDatabaseInstance(tdh.sourceUrl, "mysql", driver)
+	m, err := migrate.NewWithDatabaseInstance(h.sourceUrl, "mysql", driver)
 	if err != nil {
-		tdh.Drop(child)
+		h.Drop(child)
 		return nil, err
 	}
 	if err := m.Up(); err != nil {
-		tdh.Drop(child)
+		h.Drop(child)
 		return nil, err
 	}
 
@@ -86,22 +87,22 @@ func (tdh *Handler) Create() (*TestDatabase, error) {
 }
 
 // Drop closes and drops a test database.
-func (tdh *Handler) Drop(child *TestDatabase) error {
+func (h *Handler) Drop(child *TestDatabase) error {
 	if err := child.db.Close(); err != nil {
 		return err
 	}
-	if _, err := tdh.db.Exec("DROP DATABASE " + child.dbName); err != nil {
+	if _, err := h.db.Exec("DROP DATABASE " + child.dbName); err != nil {
 		return err
 	}
-	tdh.children.Delete(child)
+	h.children.Delete(child)
 	return nil
 }
 
 // AllDrop drops all test databases.
-func (tdh *Handler) AllDrop() error {
+func (h *Handler) AllDrop() error {
 	var errs error
-	tdh.children.Range(func(child, _ any) bool {
-		if err := child.(*TestDatabase).Drop(); err != nil {
+	h.children.Range(func(child, _ any) bool {
+		if err := h.Drop(child.(*TestDatabase)); err != nil {
 			errs = errors.Join(errs, err)
 		}
 		return true
@@ -110,9 +111,9 @@ func (tdh *Handler) AllDrop() error {
 }
 
 // Close drops all test databases and close the main database.
-func (tdh *Handler) Close() error {
-	if err := tdh.AllDrop(); err != nil {
+func (h *Handler) Close() error {
+	if err := h.AllDrop(); err != nil {
 		return err
 	}
-	return tdh.db.Close()
+	return h.db.Close()
 }
