@@ -85,8 +85,11 @@ func (tdh *Handler) Create() (*TestDatabase, error) {
 	return child, nil
 }
 
-// Drop drops a test database.
+// Drop closes and drops a test database.
 func (tdh *Handler) Drop(child *TestDatabase) error {
+	if err := child.db.Close(); err != nil {
+		return err
+	}
 	if _, err := tdh.db.Exec("DROP DATABASE " + child.dbName); err != nil {
 		return err
 	}

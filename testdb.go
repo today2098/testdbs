@@ -22,10 +22,7 @@ func (td *TestDatabase) DBx() *sqlx.DB {
 	return sqlx.NewDb(td.DB(), "mysql")
 }
 
-// Drop closes and drop database.
+// Drop closes and drops the test database.
 func (td *TestDatabase) Drop() error {
-	if err := td.db.Close(); err != nil {
-		return err
-	}
 	return td.par.Drop(td)
 }
