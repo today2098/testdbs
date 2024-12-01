@@ -32,6 +32,16 @@ func NewHandler(cfg *mysql.Config, sourceUrl string, prefix string) *Handler {
 	}
 }
 
+// NewHandlerWithDsn returns an object of Handler.
+// NOTE: `sourceUrl` have to be represented by "file://[path to file]"
+func NewHandlerWithDsn(dsn string, sourceUrl string, prefix string) (*Handler, error) {
+	cfg, err := mysql.ParseDSN(dsn)
+	if err != nil {
+		return nil, err
+	}
+	return NewHandler(cfg, sourceUrl, prefix), nil
+}
+
 // Connect connects to a database and verify with a ping.
 func (h *Handler) Connect() error {
 	var err error
