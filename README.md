@@ -53,13 +53,12 @@ func TestB(t *testing.T) {
 
 ## Description
 
-`testdbs` makes it easy to create databases for each test.
+`testdbs` makes it easy to create separate databases for each test.
 
 Separating databases for each test has the following advantages: records do not conflict between tests, and parallelization of tests becomes easier.
 
-testdbs supports the [`sql`](https://pkg.go.dev/database/sql) and [`sqlx`](https://pkg.go.dev/github.com/jmoiron/sqlx) packages as database access interfaces. 
-
-Additionally, it uses the [`golang-migrate`](https://pkg.go.dev/github.com/golang-migrate/migrate/v4) package for seed migrations.
+`testdbs` supports the [`sql`](https://pkg.go.dev/database/sql) and [`sqlx`](https://pkg.go.dev/github.com/jmoiron/sqlx) packages as database access interfaces. 
+Additionally, it uses the [`golang-migrate`](https://pkg.go.dev/github.com/golang-migrate/migrate/v4) package for database migrations and seeding.
 
 
 ## Installation
