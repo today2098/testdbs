@@ -9,6 +9,48 @@
 testdbs enables parallel testing in unit tests that use a real database (MySQL only)."
 
 
+## Synopsis
+
+```go
+import "github.com/today2098/testdbs"
+
+var h *testdbs.Handler // NOTE: h will be overwrited by TestMain()
+
+func TestMain(m *testing.M) {
+    godotenv.Load(".env")
+
+    // Create a handler to create and drop test databases
+    h = testdbs.NewHandlerWithDsn(os.Getenv("DSN"), "file://path/to/your/migrations", "prefix")
+    h.Connect()
+    defer h.Close() // Drop all test databases after all tests finish
+
+    m.Run()
+}
+
+func TestA(t *testing.T) {
+    t.Parallel()
+
+    td, _ := h.Create() // Create a test database
+    defer td.Drop()     // Drop the test database after TestA
+
+    db := td.DB() // Return *sql.DB
+
+    // TODO: implement test-A
+}
+
+func TestB(t *testing.T) {
+    t.Parallel()
+
+    td, _ := h.Create() // Create another test database
+    defer td.Drop()     // Drop the test database after TestB
+
+    dbx := td.DB() // Return *sqlx.DB
+
+    // TODO: implement test-B
+}
+```
+
+
 ## Installation
 
 ```console

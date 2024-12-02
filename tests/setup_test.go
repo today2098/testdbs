@@ -11,7 +11,7 @@ import (
 	"github.com/today2098/testdbs"
 )
 
-var h *testdbs.Handler // NOTE: will be overwrited by TestMain().
+var h *testdbs.Handler // NOTE: h will be overwrited by TestMain().
 
 func TestMain(m *testing.M) {
 	log.SetFlags(log.LstdFlags | log.Llongfile)
