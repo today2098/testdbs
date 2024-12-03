@@ -42,6 +42,11 @@ func NewHandlerWithDsn(dsn string, sourceUrl string, prefix string) (*Handler, e
 	return NewHandler(cfg, sourceUrl, prefix), nil
 }
 
+// DB returns *sql.DB.
+func (h *Handler) DB() *sql.DB {
+	return h.db
+}
+
 // Connect connects to a database and verify with a ping.
 func (h *Handler) Connect() error {
 	var err error
