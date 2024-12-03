@@ -18,7 +18,7 @@ type Handler struct {
 	db        *sql.DB
 	sourceUrl string
 	prefix    string
-	children  sync.Map
+	children  *sync.Map
 }
 
 // NewHandler returns an object of Handler.
@@ -28,7 +28,7 @@ func NewHandler(cfg *mysql.Config, sourceUrl string, prefix string) *Handler {
 		cfg:       cfg,
 		sourceUrl: sourceUrl,
 		prefix:    prefix,
-		children:  sync.Map{},
+		children:  &sync.Map{},
 	}
 }
 
