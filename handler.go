@@ -18,7 +18,7 @@ type Handler struct {
 	db        *sql.DB
 	sourceUrl string
 	prefix    string
-	children  sync.Map
+	children  *sync.Map
 }
 
 // NewHandler returns an object of Handler.
@@ -28,7 +28,7 @@ func NewHandler(cfg *mysql.Config, sourceUrl string, prefix string) *Handler {
 		cfg:       cfg,
 		sourceUrl: sourceUrl,
 		prefix:    prefix,
-		children:  sync.Map{},
+		children:  &sync.Map{},
 	}
 }
 
@@ -40,6 +40,11 @@ func NewHandlerWithDsn(dsn string, sourceUrl string, prefix string) (*Handler, e
 		return nil, err
 	}
 	return NewHandler(cfg, sourceUrl, prefix), nil
+}
+
+// DB returns *sql.DB.
+func (h *Handler) DB() *sql.DB {
+	return h.db
 }
 
 // Connect connects to a database and verify with a ping.
