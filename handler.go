@@ -5,41 +5,30 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/golang-migrate/migrate/v4"
-	mmy "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/oklog/ulid/v2"
+	"github.com/today2098/testdbs/database"
 )
 
 // Handler contains some helper methods to create and drop test databases.
 type Handler struct {
-	cfg       *mysql.Config
-	db        *sql.DB
-	sourceUrl string
-	prefix    string
-	children  *sync.Map
+	db         *sql.DB
+	driverName string
+	dsn        string
+	sourceUrl  string
+	prefix     string
+	children   *sync.Map
 }
 
 // NewHandler returns an object of Handler.
 // NOTE: `sourceUrl` have to be represented by "file://[path to file]"
-func NewHandler(cfg *mysql.Config, sourceUrl string, prefix string) *Handler {
+func NewHandler(driverName, dsn, sourceUrl string) *Handler {
 	return &Handler{
-		cfg:       cfg,
-		sourceUrl: sourceUrl,
-		prefix:    prefix,
-		children:  &sync.Map{},
+		driverName: driverName,
+		dsn:        dsn,
+		sourceUrl:  sourceUrl,
+		prefix:     "testdbs",
+		children:   &sync.Map{},
 	}
-}
-
-// NewHandlerWithDsn returns an object of Handler.
-// NOTE: `sourceUrl` have to be represented by "file://[path to file]"
-func NewHandlerWithDsn(dsn string, sourceUrl string, prefix string) (*Handler, error) {
-	cfg, err := mysql.ParseDSN(dsn)
-	if err != nil {
-		return nil, err
-	}
-	return NewHandler(cfg, sourceUrl, prefix), nil
 }
 
 // DB returns *sql.DB.
@@ -50,7 +39,7 @@ func (h *Handler) DB() *sql.DB {
 // Connect connects to a database and verify with a ping.
 func (h *Handler) Connect() error {
 	var err error
-	if h.db, err = sql.Open("mysql", h.cfg.FormatDSN()); err != nil {
+	if h.db, err = sql.Open(h.driverName, h.dsn); err != nil {
 		return err
 	}
 	return h.db.Ping()
@@ -74,26 +63,35 @@ func (h *Handler) Create() (*TestDatabase, error) {
 	h.children.Store(child, struct{}{})
 
 	// connect to a new test DB
-	cfg := *h.cfg
-	cfg.DBName = dbName
-	cfg.MultiStatements = true // !
-	if child.db, err = sql.Open("mysql", cfg.FormatDSN()); err != nil {
+	if child.db, err = database.Open(h.driverName, h.dsn, dbName); err != nil {
+		h.Drop(child)
+		return nil, err
+	}
+	if err := child.db.Ping(); err != nil {
 		h.Drop(child)
 		return nil, err
 	}
 
-	// migration
-	driver, err := mmy.WithInstance(child.db, &mmy.Config{})
+	// create a new *migrate.Migrate
+	if child.m, err = database.NewMigrate(h.driverName, child.db, h.sourceUrl); err != nil {
+		h.Drop(child)
+		return nil, err
+	}
+
+	return child, nil
+}
+
+// CreateAndMigrate creates a new test DB, migrates and returns a *TestDatabase.
+func (h *Handler) CreateAndMigrate() (*TestDatabase, error) {
+	// create a new *TestDatabase
+	child, err := h.Create()
 	if err != nil {
 		h.Drop(child)
 		return nil, err
 	}
-	m, err := migrate.NewWithDatabaseInstance(h.sourceUrl, "mysql", driver)
-	if err != nil {
-		h.Drop(child)
-		return nil, err
-	}
-	if err := m.Up(); err != nil {
+
+	// migrate
+	if err := child.Migrate().Up(); err != nil {
 		h.Drop(child)
 		return nil, err
 	}
@@ -103,8 +101,10 @@ func (h *Handler) Create() (*TestDatabase, error) {
 
 // Drop closes and drops a test database.
 func (h *Handler) Drop(child *TestDatabase) error {
-	if err := child.db.Close(); err != nil {
-		return err
+	if child.db != nil {
+		if err := child.db.Close(); err != nil {
+			return err
+		}
 	}
 	if _, err := h.db.Exec("DROP DATABASE " + child.dbName); err != nil {
 		return err

@@ -9,6 +9,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/today2098/testdbs"
+	_ "github.com/today2098/testdbs/database/mysql"
 )
 
 var h *testdbs.Handler // NOTE: h will be overwrited by TestMain().
@@ -24,11 +25,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
-	cfg.Collation = "utf8mb4_bin"
 	cfg.Loc = time.UTC
 	cfg.ParseTime = true
+	cfg.MultiStatements = true
 
-	h = testdbs.NewHandler(cfg, "file://./migrations", "testdbs_test")
+	h = testdbs.NewHandler("mysql", os.Getenv("DSN_TEST"), "file://./migrations")
 	if err := h.Connect(); err != nil {
 		log.Fatalf("fatal: %v", err)
 	}

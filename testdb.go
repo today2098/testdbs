@@ -3,6 +3,7 @@ package testdbs
 import (
 	"database/sql"
 
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -10,6 +11,7 @@ import (
 type TestDatabase struct {
 	dbName string
 	db     *sql.DB
+	m      *migrate.Migrate
 	par    *Handler
 }
 
@@ -21,6 +23,11 @@ func (td *TestDatabase) DB() *sql.DB {
 // DBx returns *sqlx.DB instead for *sql.DB.
 func (td *TestDatabase) DBx() *sqlx.DB {
 	return sqlx.NewDb(td.DB(), "mysql")
+}
+
+// Migrate returns *migrate.Migrate.
+func (td *TestDatabase) Migrate() *migrate.Migrate {
+	return td.m
 }
 
 // Drop closes and drops the test database.
