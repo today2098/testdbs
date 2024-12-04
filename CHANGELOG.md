@@ -1,6 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/today2098/testdbs/compare/v0.1.1...HEAD)
+## [Unreleased](https://github.com/today2098/testdbs/compare/v0.1.2...HEAD)
+
+
+## [v0.1.2](https://github.com/today2098/testdbs/compare/v0.1.1...v0.1.2) (2024-12-04)
+
+- Refactoring [#13](https://github.com/today2098/testdbs/pull/13)
+- Handle error about nil pointer [#12](https://github.com/today2098/testdbs/pull/12)
 
 
 ## [v0.1.1](https://github.com/today2098/testdbs/compare/v0.1.0...v0.1.1) (2024-12-04)
