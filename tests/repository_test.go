@@ -17,6 +17,7 @@ func TestPersonsRepository_CreatePerson(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
+	td.Migrate().Up()
 	defer td.Drop()
 
 	dbx := td.DBx()
@@ -78,7 +79,7 @@ func TestPersonsRepository_CreatePerson(t *testing.T) {
 func TestPersonsRepository_GetPerson(t *testing.T) {
 	t.Parallel()
 
-	td, err := h.Create()
+	td, err := h.CreateAndMigrate()
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
