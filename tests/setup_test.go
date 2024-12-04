@@ -27,9 +27,9 @@ func TestMain(m *testing.M) {
 	}
 	cfg.Loc = time.UTC
 	cfg.ParseTime = true
-	cfg.MultiStatements = true
+	cfg.MultiStatements = true // !
 
-	h = testdbs.NewHandler("mysql", os.Getenv("DSN_TEST"), "file://./migrations")
+	h = testdbs.NewHandler("mysql", cfg.FormatDSN(), "file://./migrations")
 	if err := h.Connect(); err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
