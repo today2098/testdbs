@@ -17,10 +17,10 @@ import "github.com/today2098/testdbs"
 var h *testdbs.Handler // NOTE: h will be overwrited by TestMain()
 
 func TestMain(m *testing.M) {
-    godotenv.Load(".env")
-
     // Create a handler to create and drop test databases
-    h = testdbs.NewHandlerWithDsn(os.Getenv("DSN"), "file://path/to/your/migrations", "prefix")
+    dsn := "user:password@tcp(localhost:3306)/?multiStatements=true"
+	sourceUrl := "file:///home/path/to/your/migrations"
+    h = testdbs.NewHandler("mysql", dsn, sourceUrl)
     h.Connect()
     defer h.Close() // Drop all test databases after all tests finish
 
@@ -32,6 +32,7 @@ func TestA(t *testing.T) {
 
     td, _ := h.Create() // Create a test database
     defer td.Drop()     // Drop the test database after TestA
+    h.Migration().Up()  // Migrate
 
     db := td.DB() // Return *sql.DB
 
@@ -41,8 +42,8 @@ func TestA(t *testing.T) {
 func TestB(t *testing.T) {
     t.Parallel()
 
-    td, _ := h.Create() // Create another test database
-    defer td.Drop()     // Drop the test database after TestB
+    td, _ := h.CreateAndMigrate() // Create another test database and migrate
+    defer td.Drop()               // Drop the test database after TestB
 
     dbx := td.DBx() // Return *sqlx.DB
 
