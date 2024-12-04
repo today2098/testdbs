@@ -1,6 +1,11 @@
 # Changelog
 
-## [Unreleased](https://github.com/today2098/testdbs/compare/v0.0.3...HEAD)
+## [Unreleased](https://github.com/today2098/testdbs/compare/v0.1.0...HEAD)
+
+## [v0.1.0](https://github.com/today2098/testdbs/compare/v0.0.3...v0.1.0) (2024-12-04)
+
+- Specification change to work with multiple kind of database [#8](https://github.com/today2098/testdbs/pull/8)
+
 
 ## [v0.0.3](https://github.com/today2098/testdbs/compare/v0.0.2...v0.0.3) (2024-12-03)
 
