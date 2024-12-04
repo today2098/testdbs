@@ -19,7 +19,7 @@ type Driver interface {
 func Open(driverName, dsn, dbName string) (*sql.DB, error) {
 	d, exists := drivers.Load(driverName)
 	if !exists {
-		return nil, fmt.Errorf("source driver: unknown driver '%s' (forgotten import?)", driverName)
+		return nil, fmt.Errorf("testdbs: unknown driver '%s' (forgotten import?)", driverName)
 	}
 
 	return d.(Driver).Open(dsn, dbName)
@@ -29,7 +29,7 @@ func Open(driverName, dsn, dbName string) (*sql.DB, error) {
 func NewMigrate(driverName string, db *sql.DB, sourceUrl string) (*migrate.Migrate, error) {
 	d, exists := drivers.Load(driverName)
 	if !exists {
-		return nil, fmt.Errorf("source driver: unknown driver '%s' (forgotten import?)", driverName)
+		return nil, fmt.Errorf("testdbs: unknown driver '%s' (forgotten import?)", driverName)
 	}
 
 	return d.(Driver).NewMigrate(db, sourceUrl)

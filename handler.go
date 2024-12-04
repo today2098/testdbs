@@ -9,6 +9,8 @@ import (
 	"github.com/today2098/testdbs/database"
 )
 
+var ErrNilPointer = errors.New("testdbs: nil pointer")
+
 // Handler contains some helper methods to create and drop test databases.
 type Handler struct {
 	db         *sql.DB
@@ -86,7 +88,6 @@ func (h *Handler) CreateAndMigrate() (*TestDatabase, error) {
 	// create a new *TestDatabase
 	child, err := h.Create()
 	if err != nil {
-		h.Drop(child)
 		return nil, err
 	}
 
@@ -101,12 +102,15 @@ func (h *Handler) CreateAndMigrate() (*TestDatabase, error) {
 
 // Drop closes and drops a test database.
 func (h *Handler) Drop(child *TestDatabase) error {
+	if child == nil {
+		return ErrNilPointer
+	}
 	if child.db != nil {
 		if err := child.db.Close(); err != nil {
 			return err
 		}
 	}
-	if _, err := h.db.Exec("DROP DATABASE " + child.dbName); err != nil {
+	if _, err := h.db.Exec("DROP DATABASE IF EXISTS " + child.dbName); err != nil {
 		return err
 	}
 	h.children.Delete(child)
