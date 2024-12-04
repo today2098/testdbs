@@ -1,6 +1,9 @@
 package testdbs_test
 
-import "github.com/today2098/testdbs"
+import (
+	"github.com/today2098/testdbs"
+	_ "github.com/today2098/testdbs/database/mysql"
+)
 
 func ExampleNewHandler() {
 	dsn := "user:password@tcp(localhost:3306)/?multiStatements=true"
@@ -9,7 +12,8 @@ func ExampleNewHandler() {
 	h.Connect()
 	defer h.Close()
 
-	td, _ := h.CreateAndMigrate()
+	td, _ := h.Create()
+	td.Migrate().Up()
 	defer td.Drop()
 
 	dbx := td.DBx()

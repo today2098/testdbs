@@ -12,7 +12,10 @@ testdbs enables parallel testing in unit tests that use a real database (MySQL o
 ## Synopsis
 
 ```go
-import "github.com/today2098/testdbs"
+import (
+	"github.com/today2098/testdbs"
+	_ "github.com/today2098/testdbs/database/mysql"
+)
 
 var h *testdbs.Handler // NOTE: h will be overwrited by TestMain()
 
@@ -31,8 +34,8 @@ func TestA(t *testing.T) {
     t.Parallel()
 
     td, _ := h.Create() // Create a test database
-    defer td.Drop()     // Drop the test database after TestA
     h.Migration().Up()  // Migrate
+    defer td.Drop()     // Drop the test database after TestA
 
     db := td.DB() // Return *sql.DB
 
