@@ -6,15 +6,15 @@
 [license]: https://github.com/today2098/testdbs/blob/main/LICENSE
 [godoc]: https://godoc.org/github.com/today2098/testdbs
 
-testdbs enables parallel testing in unit tests that use a real database (MySQL only)."
+testdbs enables parallel testing in unit tests that use a real database.
 
 
 ## Synopsis
 
 ```go
 import (
-	"github.com/today2098/testdbs"
-	_ "github.com/today2098/testdbs/database/mysql"
+    "github.com/today2098/testdbs"
+    _ "github.com/today2098/testdbs/database/mysql"
 )
 
 var h *testdbs.Handler // NOTE: h will be overwrited by TestMain()
@@ -22,7 +22,7 @@ var h *testdbs.Handler // NOTE: h will be overwrited by TestMain()
 func TestMain(m *testing.M) {
     // Create a handler to create and drop test databases
     dsn := "user:password@tcp(localhost:3306)/?multiStatements=true"
-	sourceUrl := "file:///home/path/to/your/migrations"
+    sourceUrl := "file:///home/path/to/your/migrations"
     h = testdbs.NewHandler("mysql", dsn, sourceUrl)
     h.Connect()
     defer h.Close() // Drop all test databases after all tests finish
